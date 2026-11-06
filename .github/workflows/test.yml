@@ -1,0 +1,26 @@
+name: Tests
+
+on:
+    push:
+        branches: [ "master", "dev" ]
+    pull_request:
+        branches: [ "master", "dev" ]
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Set up Go
+              uses: actions/setup-go@v7
+              with:
+                go-version: 1.27
+
+            - name: Run Tests
+              run: |
+                if git ls-files --recurse-submodules -- '*_test.go' | grep -q .; then
+                  go test -v ./...
+                fi
