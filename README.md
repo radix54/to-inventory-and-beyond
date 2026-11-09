@@ -73,24 +73,6 @@ To achieve quantum resistance and eliminate all cryptographic smells, the codeba
 - Go 1.27+ (required for standard library `crypto/mldsa`)
 - Make
 
-### Commands
-```bash
-# Build the application
-make build
-
-# Run all test suites
-make test
-
-# Launch the interactive CLI
-make run
-
-# Clean build artifacts
-make clean
-
-# Clean user/vault data
-make clean-data
-```
-
 ---
 
 ## Authors
