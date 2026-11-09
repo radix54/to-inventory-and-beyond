@@ -34,3 +34,6 @@ download-cdxgen:
 
 cdxgen: download-cdxgen
 	./$(CDXGEN_EXE) --deep --type go --evidence --include-crypto -o cdxgen-result.json .
+
+cbomkit:
+	docker compose --profile ext-compliance up -d
