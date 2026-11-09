@@ -25,3 +25,12 @@ clean:
 # Remove everything the program writes: identities, vault entries, packages, extracted files.
 clean-data:
 	rm -f *.identity.json *.pub.json *.vault.json *.share.json extracted-* received-*
+
+CDXGEN_EXE := cdxgen
+
+download-cdxgen:
+	curl -L -o $(CDXGEN_EXE) https://github.com/cdxgen/cdxgen/releases/download/v13.7.0/cdxgen-linux-amd64
+	chmod +x $(CDXGEN_EXE)
+
+cdxgen: download-cdxgen
+	./$(CDXGEN_EXE) --deep --type go --evidence --include-crypto -o cdxgen-result.json .
