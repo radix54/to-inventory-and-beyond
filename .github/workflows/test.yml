@@ -21,7 +21,6 @@ jobs:
 
             - name: Install Dependencies
               run: |
-                cd To-Inventory-and-Beyond
                 go mod tidy
 
             - name: Run Tests
