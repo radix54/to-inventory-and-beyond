@@ -36,3 +36,5 @@ bin/
 
 cdxgen-linux-amd64
 cdxgen
+
+*.json
