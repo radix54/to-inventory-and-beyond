@@ -125,7 +125,7 @@ func TestFingerprint(t *testing.T) {
 
 func TestKeysSurviveStoringAndLoading(t *testing.T) {
 	alice, _ := testKeys(t)
-	loaded := Keys{RSAPrivate: alice.RSAPrivate, ECCPrivate: alice.ECCPrivate}
+	loaded := Keys{SignPrivate: alice.SignPrivate, KEMPrivate: alice.KEMPrivate}
 	if err := loaded.Load(); err != nil {
 		t.Fatal(err)
 	}
@@ -140,8 +140,8 @@ func TestLoadRejectsBrokenKeys(t *testing.T) {
 	alice, _ := testKeys(t)
 	for name, k := range map[string]Keys{
 		"empty":   {},
-		"not pem": {RSAPrivate: "hello", ECCPrivate: alice.ECCPrivate},
-		"bad ecc": {RSAPrivate: alice.RSAPrivate, ECCPrivate: []byte{1, 2, 3}},
+		"not pem": {SignPrivate: "hello", KEMPrivate: alice.KEMPrivate},
+		"bad kem": {SignPrivate: alice.SignPrivate, KEMPrivate: []byte{1, 2, 3}},
 	} {
 		if err := k.Load(); err == nil {
 			t.Errorf("%s: expected an error", name)
@@ -178,10 +178,10 @@ func TestSignVerify(t *testing.T) {
 
 func TestWrapUnwrapKey(t *testing.T) {
 	_, bob := testKeys(t)
-	_, bobECC := bob.PublicKeys()
+	_, bobKEM := bob.PublicKeys()
 	fileKey := randomBytes(t, keyLen)
 
-	eph, wrapped, err := WrapKey(bobECC, fileKey)
+	eph, wrapped, err := WrapKey(bobKEM, fileKey)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -189,7 +189,7 @@ func TestWrapUnwrapKey(t *testing.T) {
 	if err != nil || !bytes.Equal(got, fileKey) {
 		t.Fatalf("unwrap failed: %v", err)
 	}
-	eph2, _, _ := WrapKey(bobECC, fileKey)
+	eph2, _, _ := WrapKey(bobKEM, fileKey)
 	if bytes.Equal(eph, eph2) {
 		t.Error("two wraps reused the same ephemeral key")
 	}
@@ -197,9 +197,9 @@ func TestWrapUnwrapKey(t *testing.T) {
 
 func TestUnwrapKeyFailsForOtherRecipient(t *testing.T) {
 	alice, bob := testKeys(t)
-	_, bobECC := bob.PublicKeys()
+	_, bobKEM := bob.PublicKeys()
 	fileKey := randomBytes(t, keyLen)
-	eph, wrapped, _ := WrapKey(bobECC, fileKey)
+	eph, wrapped, _ := WrapKey(bobKEM, fileKey)
 
 	got, err := alice.UnwrapKey(eph, wrapped)
 	if err == nil && bytes.Equal(got, fileKey) {
