@@ -1,4 +1,5 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE.md)
+[![Tests](https://github.com/radix54/to-inventory-and-beyond/actions/workflows/test.yml/badge.svg)](https://github.com/radix54/to-inventory-and-beyond/actions/workflows/test.yml)
 
 # To Inventory and Beyond
 Advanced Programming of Cryptographics Methods course projects template repository.
