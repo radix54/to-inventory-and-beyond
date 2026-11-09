@@ -19,7 +19,11 @@ jobs:
               with:
                 go-version: 1.26
 
-            - name: Run Tests
+            - name: Install Dependencies
               run: |
                 cd To-Inventory-and-Beyond
+                go mod tidy
+
+            - name: Run Tests
+              run: |
                 go test -v ./...
