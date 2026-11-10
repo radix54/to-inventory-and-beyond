@@ -37,4 +37,6 @@ bin/
 cdxgen-linux-amd64
 cdxgen
 
+vaultwarden
+
 *.json

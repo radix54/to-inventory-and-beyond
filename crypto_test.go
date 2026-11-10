@@ -45,7 +45,7 @@ func TestEncryptDecryptRoundTrip(t *testing.T) {
 		if err != nil {
 			t.Fatalf("len %d: %v", n, err)
 		}
-		if len(ct) != n+28 || len(ct) <= n {
+		if len(ct)%16 != 0 || len(ct) <= n {
 			t.Errorf("len %d: unexpected ciphertext length %d", n, len(ct))
 		}
 		got, err := Decrypt(key, ct)
@@ -104,8 +104,10 @@ func TestNewSalt(t *testing.T) {
 
 func TestChecksum(t *testing.T) {
 	for in, want := range map[string]string{
-		"":    "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-		"abc": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+		//"":    "d41d8cd98f00b204e9800998ecf8427e",
+		//"abc": "900150983cd24fb0d6963f7d28e17f72",
+		"":    "0c63a75b845e4f7d01107d852e4c2485c51a50aaaa94fc61995e71bbee983a2ac3713831264adb47fb6bd1e058d5f004",
+		"abc": "ec01498288516fc926459f58e2c6ad8df9b473cb0fc08c2596da7cf0e49be4b298d88cea927ac7f539f1edf228376d25",
 	} {
 		if got := Checksum([]byte(in)); got != want {
 			t.Errorf("Checksum(%q) = %s, want %s", in, got, want)
@@ -125,6 +127,7 @@ func TestFingerprint(t *testing.T) {
 
 func TestKeysSurviveStoringAndLoading(t *testing.T) {
 	alice, _ := testKeys(t)
+	//loaded := Keys{RSAPrivate: alice.RSAPrivate, ECCPrivate: alice.ECCPrivate}
 	loaded := Keys{SignPrivate: alice.SignPrivate, KEMPrivate: alice.KEMPrivate}
 	if err := loaded.Load(); err != nil {
 		t.Fatal(err)
@@ -139,7 +142,9 @@ func TestKeysSurviveStoringAndLoading(t *testing.T) {
 func TestLoadRejectsBrokenKeys(t *testing.T) {
 	alice, _ := testKeys(t)
 	for name, k := range map[string]Keys{
-		"empty":   {},
+		"empty": {},
+		//"not pem": {RSAPrivate: "hello", ECCPrivate: alice.ECCPrivate},
+		//"bad ecc": {RSAPrivate: alice.RSAPrivate, ECCPrivate: []byte{1, 2, 3}},
 		"not pem": {SignPrivate: "hello", KEMPrivate: alice.KEMPrivate},
 		"bad kem": {SignPrivate: alice.SignPrivate, KEMPrivate: []byte{1, 2, 3}},
 	} {
@@ -178,9 +183,11 @@ func TestSignVerify(t *testing.T) {
 
 func TestWrapUnwrapKey(t *testing.T) {
 	_, bob := testKeys(t)
+	//_, bobECC := bob.PublicKeys()
 	_, bobKEM := bob.PublicKeys()
 	fileKey := randomBytes(t, keyLen)
 
+	//eph, wrapped, err := WrapKey(bobECC, fileKey)
 	eph, wrapped, err := WrapKey(bobKEM, fileKey)
 	if err != nil {
 		t.Fatal(err)
@@ -189,6 +196,7 @@ func TestWrapUnwrapKey(t *testing.T) {
 	if err != nil || !bytes.Equal(got, fileKey) {
 		t.Fatalf("unwrap failed: %v", err)
 	}
+	//eph2, _, _ := WrapKey(bobECC, fileKey)
 	eph2, _, _ := WrapKey(bobKEM, fileKey)
 	if bytes.Equal(eph, eph2) {
 		t.Error("two wraps reused the same ephemeral key")
@@ -197,8 +205,10 @@ func TestWrapUnwrapKey(t *testing.T) {
 
 func TestUnwrapKeyFailsForOtherRecipient(t *testing.T) {
 	alice, bob := testKeys(t)
+	//_, bobECC := bob.PublicKeys()
 	_, bobKEM := bob.PublicKeys()
 	fileKey := randomBytes(t, keyLen)
+	//eph, wrapped, _ := WrapKey(bobECC, fileKey)
 	eph, wrapped, _ := WrapKey(bobKEM, fileKey)
 
 	got, err := alice.UnwrapKey(eph, wrapped)

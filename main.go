@@ -27,6 +27,9 @@ type Identity struct {
 
 // Public is a user's public data (that they give to other users)
 type Public struct {
+	//Name      string
+	//RSAPublic []byte
+	//ECCPublic []byte
 	Name       string
 	SignPublic []byte
 	KEMPublic  []byte
@@ -42,6 +45,8 @@ type VaultEntry struct {
 
 // Package is an encrypted file ready to be sent to another user
 type Package struct {
+	//Name, Sender, Checksum                                  string
+	//SenderRSA, Ephemeral, WrappedKey, Ciphertext, Signature []byte
 	Name, Sender, Checksum                                   string
 	SenderSign, Ephemeral, WrappedKey, Ciphertext, Signature []byte
 }
@@ -79,6 +84,8 @@ func openIdentity(name string) (*Identity, error) {
 }
 
 func (id *Identity) public() Public {
+	//rsaDER, eccRaw := id.PublicKeys()
+	//return Public{id.Name, rsaDER, eccRaw}
 	signDER, kemRaw := id.PublicKeys()
 	return Public{id.Name, signDER, kemRaw}
 }
@@ -143,6 +150,7 @@ func shareEntry(from *Identity, name, password string, to Public) (string, error
 	if err != nil {
 		return "", err
 	}
+	//eph, wrapped, err := WrapKey(to.ECCPublic, key)
 	eph, wrapped, err := WrapKey(to.KEMPublic, key)
 	if err != nil {
 		return "", err
@@ -152,6 +160,7 @@ func shareEntry(from *Identity, name, password string, to Public) (string, error
 		return "", err
 	}
 	path := fmt.Sprintf("%s.%s.share.json", e.Name, to.Name)
+	//return path, writeJSON(path, Package{e.Name, from.Name, e.Checksum, from.public().RSAPublic, eph, wrapped, e.Ciphertext, sig})
 	return path, writeJSON(path, Package{e.Name, from.Name, e.Checksum, from.public().SignPublic, eph, wrapped, e.Ciphertext, sig})
 }
 
@@ -161,6 +170,7 @@ func receiveFile(me *Identity, path string) (out, sender string, err error) {
 	if err = readJSON(path, &pkg); err != nil {
 		return "", "", fmt.Errorf("reading package: %w", err)
 	}
+	//if Verify(pkg.SenderRSA, pkg.Ciphertext, pkg.Signature) != nil {
 	if Verify(pkg.SenderSign, pkg.Ciphertext, pkg.Signature) != nil {
 		return "", "", errors.New("signature check failed")
 	}
@@ -173,6 +183,7 @@ func receiveFile(me *Identity, path string) (out, sender string, err error) {
 		return "", "", err
 	}
 	out = "received-" + filepath.Base(pkg.Name)
+	//return out, fmt.Sprintf("%s (RSA key fingerprint %s)", pkg.Sender, Fingerprint(pkg.SenderRSA)), os.WriteFile(out, plain, 0o644)
 	return out, fmt.Sprintf("%s (signing key fingerprint %s)", pkg.Sender, Fingerprint(pkg.SenderSign)), os.WriteFile(out, plain, 0o644)
 }
 
@@ -226,6 +237,7 @@ func (s *session) share(a []string) (string, error) {
 		return "", errors.New("recipient identity has an invalid name")
 	}
 	path, err := shareEntry(s.me, a[0], a[1], to)
+	//return fmt.Sprintf("Package for %s saved as %s\nRecipient fingerprint: %s", to.Name, path, Fingerprint(to.RSAPublic, to.ECCPublic)), err
 	return fmt.Sprintf("Package for %s saved as %s\nRecipient fingerprint: %s", to.Name, path, Fingerprint(to.SignPublic, to.KEMPublic)), err
 }
 
@@ -251,6 +263,7 @@ func run(in io.Reader, out io.Writer) error {
 	if err = writeJSON(a[0]+".pub.json", pub); err != nil {
 		return err
 	}
+	//fmt.Fprintf(out, "Logged in as %s (fingerprint %s); public identity in %s.pub.json\n", a[0], Fingerprint(pub.RSAPublic, pub.ECCPublic), a[0])
 	fmt.Fprintf(out, "Logged in as %s (fingerprint %s); public identity in %s.pub.json\n", a[0], Fingerprint(pub.SignPublic, pub.KEMPublic), a[0])
 
 	// Each menu entry: the questions to ask, then an action returning a message to print
