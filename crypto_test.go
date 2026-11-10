@@ -45,8 +45,7 @@ func TestEncryptDecryptRoundTrip(t *testing.T) {
 		if err != nil {
 			t.Fatalf("len %d: %v", n, err)
 		}
-		//if len(ct)%16 != 0 || len(ct) <= n {
-		if len(ct) != n+28 || len(ct) <= n {
+		if len(ct)%16 != 0 || len(ct) <= n {
 			t.Errorf("len %d: unexpected ciphertext length %d", n, len(ct))
 		}
 		got, err := Decrypt(key, ct)
