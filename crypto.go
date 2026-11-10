@@ -307,6 +307,7 @@ func (k *Keys) Sign(data []byte) ([]byte, error) {
 	digest := sha3.Sum384(data)
 	// CBOMs: yes
 	// cdxgen
+	// CBOMkit-hyperion
 	// FIXES:
 	// RSA PKCS#1 -> ML-DSA-65 PKCS#8
 	//return rsa.SignPKCS1v15(nil, k.rsaKey, crypto.MD5, digest[:])
