@@ -145,7 +145,6 @@ func DeriveKey(password string, salt []byte) []byte {
 }
 
 // blocks runs AES over data one block at a time (equivalent to AES-GCM)
-// TODO: Check
 func blocks(key, data []byte, encrypt bool) ([]byte, error) {
 	cipher, err := aes.NewCipher(key)
 	if err != nil {
@@ -163,13 +162,11 @@ func blocks(key, data []byte, encrypt bool) ([]byte, error) {
 }
 
 // Encrypt and Decrypt use PKCS#7 padding
-// TODO: Check
 func Encrypt(key, plain []byte) ([]byte, error) {
 	pad := aes.BlockSize - len(plain)%aes.BlockSize
 	return blocks(key, append(append([]byte{}, plain...), bytes.Repeat([]byte{byte(pad)}, pad)...), true)
 }
 
-// TODO: Check
 func Decrypt(key, data []byte) ([]byte, error) {
 	if len(data) == 0 || len(data)%aes.BlockSize != 0 {
 		return nil, errors.New("invalid ciphertext length")
