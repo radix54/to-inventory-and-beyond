@@ -199,33 +199,27 @@ func Checksum(data []byte) string {
 // CBOMs: yes
 // cdxgen
 // CBOMkit-hyperion
-// FIXES:
-// ECDH P-256 -> ML-KEM-768
+// FIXES: Comment since unused
 // sharedKey derives the key-encryption key shared between priv and a peer's P-256 public key
-//
-//	func sharedKey(priv *ecdh.PrivateKey, peer []byte) ([]byte, error) {
-func sharedKey(priv *mlkem.DecapsulationKey768, peer []byte) ([]byte, error) {
-	//pub, err := ecdh.P256().NewPublicKey(peer)
-	shared, err := priv.Decapsulate(peer)
-	if err != nil {
-		return nil, err
-	}
-	//shared, err := priv.ECDH(pub)
-	sum := sha256.Sum256(shared)
-	return sum[:], err
-}
+//func sharedKey(priv *ecdh.PrivateKey, peer []byte) ([]byte, error) {
+//	pub, err := ecdh.P256().NewPublicKey(peer)
+//	if err != nil {
+//		return nil, err
+//	}
+//	shared, err := priv.ECDH(pub)
+//	sum := sha256.Sum256(shared)
+//	return sum[:], err
+//}
 
 // WrapKey encrypts a file key for the owner of recipientECC; ephemeral must travel with it
 // func WrapKey(recipientECC, fileKey []byte) (ephemeral, wrapped []byte, err error) {
-func WrapKey(recipientKEM, fileKey []byte) (ephemeral, wrapped []byte, err error) {
-	//TODO: Check
-	//eph, err := ecdh.P256().GenerateKey(rand.Reader)
-	ek, err := mlkem.NewEncapsulationKey768(recipientKEM)
+func WrapKey(recipientKEM, fileKey []byte) (ephemeral, wrapped []byte, err error) { //eph, err := ecdh.P256().GenerateKey(rand.Reader)
+	eph, err := mlkem.NewEncapsulationKey768(recipientKEM)
 	if err != nil {
 		return nil, nil, err
 	}
 	//kek, err := sharedKey(eph, recipientECC)
-	sharedKey, ciphertext := ek.Encapsulate()
+	sharedKey, ciphertext := eph.Encapsulate()
 	//wrapped, err = Encrypt(kek, fileKey)
 	wrapped, err = Encrypt(sharedKey, fileKey)
 	if err != nil {
