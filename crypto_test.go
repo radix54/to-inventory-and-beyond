@@ -106,8 +106,8 @@ func TestChecksum(t *testing.T) {
 	for in, want := range map[string]string{
 		//"":    "d41d8cd98f00b204e9800998ecf8427e",
 		//"abc": "900150983cd24fb0d6963f7d28e17f72",
-		"":    "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-		"abc": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+		"":    "0c63a75b845e4f7d01107d852e4c2485c51a50aaaa94fc61995e71bbee983a2ac3713831264adb47fb6bd1e058d5f004",
+		"abc": "ec01498288516fc926459f58e2c6ad8df9b473cb0fc08c2596da7cf0e49be4b298d88cea927ac7f539f1edf228376d25",
 	} {
 		if got := Checksum([]byte(in)); got != want {
 			t.Errorf("Checksum(%q) = %s, want %s", in, got, want)

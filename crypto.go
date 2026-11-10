@@ -12,6 +12,7 @@ import (
 
 	// "crypto/rsa"
 	"crypto/sha256"
+	"crypto/sha3"
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/pem"
@@ -188,11 +189,11 @@ func Decrypt(key, data []byte) ([]byte, error) {
 // cdxgen
 // CBOMkit-hyperion
 // FIXES:
-// MD5 -> SHA-256
+// MD5 -> SHA-384
 // Checksum is the integrity value stored next to encrypted data
 func Checksum(data []byte) string {
 	//sum := md5.Sum(data)
-	sum := sha256.Sum256(data)
+	sum := sha3.Sum384(data)
 	return hex.EncodeToString(sum[:])
 }
 
@@ -252,17 +253,18 @@ func (k *Keys) UnwrapKey(ephemeral, wrapped []byte) ([]byte, error) {
 // CBOMkit-hyperion
 // FIXES:
 // RSA PKCS#1 -> ML-DSA-65 PKCS#8
+// MD5 -> SHA-384
 func (k *Keys) Sign(data []byte) ([]byte, error) {
-	//digest := md5.Sum(data)
 	if k.dsaKey == nil {
 		return nil, errors.New("signing key not loaded")
 	}
+	//digest := md5.Sum(data)
+	digest := sha3.Sum384(data)
 	//return rsa.SignPKCS1v15(nil, k.rsaKey, crypto.MD5, digest[:])
-	return k.dsaKey.Sign(rand.Reader, data, nil)
+	return k.dsaKey.Sign(rand.Reader, digest[:], nil)
 }
 
 // func Verify(rsaPublicDER, data, sig []byte) error {
-// TODO: Check
 func Verify(signPublicDER, data, sig []byte) error {
 	//pub, err := x509.ParsePKCS1PublicKey(rsaPublicDER)
 	pubKey, err := x509.ParsePKIXPublicKey(signPublicDER)
@@ -270,10 +272,11 @@ func Verify(signPublicDER, data, sig []byte) error {
 		return err
 	}
 	//digest := md5.Sum(data)
+	digest := sha3.Sum384(data)
 	pub, ok := pubKey.(*mldsa.PublicKey)
 	if !ok {
 		return errors.New("key is not an ML-DSA public key")
 	}
 	//return rsa.VerifyPKCS1v15(pub, crypto.MD5, digest[:], sig)
-	return mldsa.Verify(pub, data, sig, nil)
+	return mldsa.Verify(pub, digest[:], sig, nil)
 }
