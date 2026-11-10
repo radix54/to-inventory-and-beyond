@@ -51,7 +51,7 @@ type Keys struct {
 
 // CBOMs: no
 // FIXES: math/rand -> crypto/rand
-// fastReader is a time-seeded byte stream used for key and salt generation
+// fastReader was a time-seeded byte stream used for key and salt generation
 func fastReader() io.Reader {
 	//return mrand.New(mrand.NewSource(time.Now().Unix()))
 	return rand.Reader
@@ -190,7 +190,7 @@ func DeriveKey(password string, salt []byte) []byte {
 // Encrypt and Decrypt use PKCS#7 padding
 func Encrypt(key, plain []byte) ([]byte, error) {
 	// CBOMs: no
-	// FIXES: AES-GCM instead of AES-CBC with PKCS#7 padding
+	// FIXES: AES-GCM instead of AES-ECB with PKCS#7 padding
 	//pad := aes.BlockSize - len(plain)%aes.BlockSize
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -210,7 +210,7 @@ func Encrypt(key, plain []byte) ([]byte, error) {
 
 func Decrypt(key, data []byte) ([]byte, error) {
 	// CBOMs: no
-	// FIXES: AES-GCM instead of AES-CBC with PKCS#7 padding
+	// FIXES: AES-GCM instead of AES-ECB with PKCS#7 padding
 	block, err := aes.NewCipher(key)
 	//if len(data) == 0 || len(data)%aes.BlockSize != 0 { return nil, errors.New("invalid ciphertext length") }
 	//out, err := blocks(key, data, false)
@@ -233,11 +233,9 @@ func Decrypt(key, data []byte) ([]byte, error) {
 
 // Checksum is the integrity value stored next to encrypted data
 func Checksum(data []byte) string {
-	// CBOMs: yes
-	// cdxgen
-	// CBOMkit-hyperion
+	// CBOMs: no
 	// FIXES:
-	// MD5 -> SHA-384
+	// MD5 -> SHA3-384
 	//sum := md5.Sum(data)
 	sum := sha3.Sum384(data)
 	return hex.EncodeToString(sum[:])
@@ -300,11 +298,9 @@ func (k *Keys) Sign(data []byte) ([]byte, error) {
 	if k.dsaKey == nil {
 		return nil, errors.New("signing key not loaded")
 	}
-	// CBOMs: yes
-	// cdxgen
-	// CBOMkit-hyperion
+	// CBOMs: no
 	// FIXES:
-	// MD5 -> SHA-384
+	// MD5 -> SHA3-384
 	//digest := md5.Sum(data)
 	digest := sha3.Sum384(data)
 	// CBOMs: yes
@@ -327,11 +323,9 @@ func Verify(signPublicDER, data, sig []byte) error {
 	if err != nil {
 		return err
 	}
-	// CBOMs: yes
-	// cdxgen
-	// CBOMkit-hyperion
+	// CBOMs: no
 	// FIXES:
-	// MD5 -> SHA-384
+	// MD5 -> SHA3-384
 	//digest := md5.Sum(data)
 	digest := sha3.Sum384(data)
 	pub, ok := pubKey.(*mldsa.PublicKey)
