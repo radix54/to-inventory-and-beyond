@@ -280,6 +280,11 @@ func (k *Keys) Sign(data []byte) ([]byte, error) {
 	return k.dsaKey.Sign(rand.Reader, digest[:], nil)
 }
 
+// CBOMs: yes
+// cdxgen
+// CBOMkit-hyperion
+// FIXES:
+// - RSA-2048 -> ML-DSA-65
 // func Verify(rsaPublicDER, data, sig []byte) error {
 func Verify(signPublicDER, data, sig []byte) error {
 	//pub, err := x509.ParsePKCS1PublicKey(rsaPublicDER)
