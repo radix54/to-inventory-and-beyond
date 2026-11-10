@@ -45,7 +45,8 @@ func TestEncryptDecryptRoundTrip(t *testing.T) {
 		if err != nil {
 			t.Fatalf("len %d: %v", n, err)
 		}
-		if len(ct)%16 != 0 || len(ct) <= n {
+		//if len(ct)%16 != 0 || len(ct) <= n {
+		if len(ct) != n+12+16 {
 			t.Errorf("len %d: unexpected ciphertext length %d", n, len(ct))
 		}
 		got, err := Decrypt(key, ct)
@@ -63,7 +64,8 @@ func TestEncryptRejectsBadKeyLength(t *testing.T) {
 
 func TestDecryptRejectsMalformedInput(t *testing.T) {
 	key := randomBytes(t, keyLen)
-	for _, data := range [][]byte{nil, {}, make([]byte, 15), make([]byte, 17)} {
+	//for _, data := range [][]byte{nil, {}, make([]byte, 15), make([]byte, 17)} {
+	for _, data := range [][]byte{nil, {}, make([]byte, 27)} {
 		if _, err := Decrypt(key, data); err == nil {
 			t.Errorf("expected an error for %d bytes of ciphertext", len(data))
 		}
@@ -117,7 +119,8 @@ func TestChecksum(t *testing.T) {
 
 func TestFingerprint(t *testing.T) {
 	a, b := []byte("one"), []byte("two")
-	if got := Fingerprint(a, b); len(got) != 24 || got != Fingerprint(a, b) {
+	//if got := Fingerprint(a, b); len(got) != 24 || got != Fingerprint(a, b) {
+	if got := Fingerprint(a, b); len(got) != 64 || got != Fingerprint(a, b) {
 		t.Errorf("fingerprint %q is not a stable 24-character string", got)
 	}
 	if Fingerprint(a) == Fingerprint(b) {

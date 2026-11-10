@@ -4,6 +4,8 @@ import (
 	"bytes"
 	// "crypto"
 	"crypto/aes"
+	"crypto/cipher"
+
 	// "crypto/ecdh"
 	// "crypto/md5"
 	"crypto/mldsa"
@@ -144,12 +146,20 @@ func (k *Keys) PublicKeys() (signDER, kemRaw []byte) {
 // Fingerprint is a short hash of public key material, for people to compare
 func Fingerprint(parts ...[]byte) string {
 	sum := sha256.Sum256(bytes.Join(parts, nil))
-	return hex.EncodeToString(sum[:12])
+	// CBOMs: no
+	// FIXES: Return full SHA-256 instead of truncated
+	//return hex.EncodeToString(sum[:12])
+	return hex.EncodeToString(sum[:])
 }
 
 func NewSalt() []byte {
 	salt := make([]byte, 16)
-	fastReader().Read(salt)
+	// CBOMs: no
+	// FIXES: math/rand -> crypto/rand
+	//	fastReader().Read(salt)
+	if _, err := io.ReadFull(rand.Reader, salt); err != nil {
+		panic(err)
+	}
 	return salt
 }
 
@@ -158,42 +168,67 @@ func DeriveKey(password string, salt []byte) []byte {
 	return argon2.IDKey([]byte(password), salt, 2, 64*1024, 1, keyLen)
 }
 
+// CBOMs: no
+// FIXES: Comment since unused
 // blocks runs AES over data one block at a time (equivalent to AES-GCM)
-func blocks(key, data []byte, encrypt bool) ([]byte, error) {
-	cipher, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	op := cipher.Decrypt
-	if encrypt {
-		op = cipher.Encrypt
-	}
-	out := make([]byte, len(data))
-	for i := 0; i < len(data); i += aes.BlockSize {
-		op(out[i:i+aes.BlockSize], data[i:i+aes.BlockSize])
-	}
-	return out, nil
-}
+//func blocks(key, data []byte, encrypt bool) ([]byte, error) {
+//	cipher, err := aes.NewCipher(key)
+//	if err != nil {
+//		return nil, err
+//	}
+//	op := cipher.Decrypt
+//	if encrypt {
+//		op = cipher.Encrypt
+//	}
+//	out := make([]byte, len(data))
+//	for i := 0; i < len(data); i += aes.BlockSize {
+//		op(out[i:i+aes.BlockSize], data[i:i+aes.BlockSize])
+//	}
+//	return out, nil
+//}
 
 // Encrypt and Decrypt use PKCS#7 padding
 func Encrypt(key, plain []byte) ([]byte, error) {
-	pad := aes.BlockSize - len(plain)%aes.BlockSize
-	return blocks(key, append(append([]byte{}, plain...), bytes.Repeat([]byte{byte(pad)}, pad)...), true)
-}
-
-func Decrypt(key, data []byte) ([]byte, error) {
-	if len(data) == 0 || len(data)%aes.BlockSize != 0 {
-		return nil, errors.New("invalid ciphertext length")
-	}
-	out, err := blocks(key, data, false)
+	// CBOMs: no
+	// FIXES: AES-GCM instead of AES-CBC with PKCS#7 padding
+	//pad := aes.BlockSize - len(plain)%aes.BlockSize
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}
-	pad := int(out[len(out)-1])
-	if pad == 0 || pad > aes.BlockSize || !bytes.HasSuffix(out, bytes.Repeat([]byte{byte(pad)}, pad)) {
-		return nil, errors.New("invalid padding")
+	aead, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
 	}
-	return out[:len(out)-pad], nil
+	nonce := make([]byte, aead.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return nil, err
+	}
+	//return blocks(key, append(append([]byte{}, plain...), bytes.Repeat([]byte{byte(pad)}, pad)...), true)
+	return aead.Seal(nonce, nonce, plain, nil), nil
+}
+
+func Decrypt(key, data []byte) ([]byte, error) {
+	// CBOMs: no
+	// FIXES: AES-GCM instead of AES-CBC with PKCS#7 padding
+	block, err := aes.NewCipher(key)
+	//if len(data) == 0 || len(data)%aes.BlockSize != 0 { return nil, errors.New("invalid ciphertext length") }
+	//out, err := blocks(key, data, false)
+	//if err != nil { return nil, err }
+	//pad := int(out[len(out)-1])
+	//if pad == 0 || pad > aes.BlockSize || !bytes.HasSuffix(out, bytes.Repeat([]byte{byte(pad)}, pad)) { return nil, errors.New("invalid padding") }
+	if err != nil {
+		return nil, err
+	}
+	aead, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+	if len(data) < aead.NonceSize()+aead.Overhead() {
+		return nil, errors.New("invalid ciphertext length")
+	}
+	//return out[:len(out)-pad], nil
+	return aead.Open(nil, data[:aead.NonceSize()], data[aead.NonceSize():], nil)
 }
 
 // Checksum is the integrity value stored next to encrypted data
