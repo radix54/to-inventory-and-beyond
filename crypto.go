@@ -30,8 +30,10 @@ const keyLen = 32
 // cdxgen
 // CBOMkit-hyperion
 // FIXES:
-// Migrated key material:
 // - RSA-2048 -> ML-DSA-65
+//
+// CBOMs: no
+// FIXES:
 // - ECDH P-256 -> ML-KEM-768
 // Keys contains a user's key material
 type Keys struct {
@@ -64,6 +66,9 @@ func NewKeys() (Keys, error) {
 	if err != nil {
 		return Keys{}, err
 	}
+	// CBOMs: no
+	// FIXES:
+	// ECDH P-256 -> ML-KEM-768
 	//eccKey, err := ecdh.P256().GenerateKey(rand.Reader)
 	kemKey, err := mlkem.GenerateKey768()
 	if err != nil {
@@ -92,7 +97,6 @@ func NewKeys() (Keys, error) {
 // CBOMkit-hyperion
 // FIXES:
 // RSA PKCS#1 -> ML-DSA-65 PKCS#8
-// ECDH P-256 -> ML-KEM-768
 // Load parses the stored private keys
 func (k *Keys) Load() (err error) {
 	//block, _ := pem.Decode([]byte(k.RSAPrivate))
@@ -110,6 +114,9 @@ func (k *Keys) Load() (err error) {
 	if k.dsaKey, ok = privKey.(*mldsa.PrivateKey); !ok {
 		return errors.New("key is not an ML-DSA private key")
 	}
+	// CBOMs: no
+	// FIXES:
+	// ECDH P-256 -> ML-KEM-768
 	//k.eccKey, err = ecdh.P256().NewPrivateKey(k.ECCPrivate)
 	k.kemKey, err = mlkem.NewDecapsulationKey768(k.KEMPrivate)
 	return err
@@ -120,7 +127,6 @@ func (k *Keys) Load() (err error) {
 // CBOMkit-hyperion
 // FIXES:
 // RSA PKCS#1 -> ML-DSA-65 PKCS#8
-// ECDH P-256 -> ML-KEM-768
 // PublicKeys returns the public halves: PKCS#1 DER for RSA, an uncompressed point for P-256
 // func (k *Keys) PublicKeys() (rsaDER, eccRaw []byte) {
 func (k *Keys) PublicKeys() (signDER, kemRaw []byte) {
@@ -129,6 +135,9 @@ func (k *Keys) PublicKeys() (signDER, kemRaw []byte) {
 	if err != nil {
 		panic(err)
 	}
+	// CBOMs: no
+	// FIXES:
+	// ECC -> ML-KEM-768
 	return pkix, k.kemKey.EncapsulationKey().Bytes()
 }
 
@@ -214,7 +223,11 @@ func Checksum(data []byte) string {
 
 // WrapKey encrypts a file key for the owner of recipientECC; ephemeral must travel with it
 // func WrapKey(recipientECC, fileKey []byte) (ephemeral, wrapped []byte, err error) {
-func WrapKey(recipientKEM, fileKey []byte) (ephemeral, wrapped []byte, err error) { //eph, err := ecdh.P256().GenerateKey(rand.Reader)
+func WrapKey(recipientKEM, fileKey []byte) (ephemeral, wrapped []byte, err error) {
+	// CBOMs: no
+	// FIXES:
+	// ECDH P-256 -> ML-KEM-768
+	//eph, err := ecdh.P256().GenerateKey(rand.Reader)
 	eph, err := mlkem.NewEncapsulationKey768(recipientKEM)
 	if err != nil {
 		return nil, nil, err
