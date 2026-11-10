@@ -233,7 +233,8 @@ func Decrypt(key, data []byte) ([]byte, error) {
 
 // Checksum is the integrity value stored next to encrypted data
 func Checksum(data []byte) string {
-	// CBOMs: no
+	// CBOMs: yes
+	// cdxgen
 	// FIXES:
 	// MD5 -> SHA3-384
 	//sum := md5.Sum(data)
@@ -298,7 +299,8 @@ func (k *Keys) Sign(data []byte) ([]byte, error) {
 	if k.dsaKey == nil {
 		return nil, errors.New("signing key not loaded")
 	}
-	// CBOMs: no
+	// CBOMs: yes
+	// cdxgen
 	// FIXES:
 	// MD5 -> SHA3-384
 	//digest := md5.Sum(data)
@@ -323,7 +325,8 @@ func Verify(signPublicDER, data, sig []byte) error {
 	if err != nil {
 		return err
 	}
-	// CBOMs: no
+	// CBOMs: yes
+	// cdxgen
 	// FIXES:
 	// MD5 -> SHA3-384
 	//digest := md5.Sum(data)
