@@ -50,12 +50,11 @@ type Keys struct {
 }
 
 // CBOMs: no
-// FIXES: math/rand -> crypto/rand
-// fastReader was a time-seeded byte stream used for key and salt generation
-func fastReader() io.Reader {
-	//return mrand.New(mrand.NewSource(time.Now().Unix()))
-	return rand.Reader
-}
+// FIXES: remove since unused
+// fastReader is a time-seeded byte stream used for key and salt generation
+//func fastReader() io.Reader {
+//	return rand.Reader
+//}
 
 func NewKeys() (Keys, error) {
 	// CBOMs: yes
