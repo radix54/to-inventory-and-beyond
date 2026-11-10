@@ -63,6 +63,7 @@ func TestOpenIdentityCreatesAndReloads(t *testing.T) {
 		t.Fatal("identity file was not written")
 	}
 	again := user(t, "alice")
+	//if first.public().Name != again.public().Name || !bytes.Equal(first.public().ECCPublic, again.public().ECCPublic) {
 	if first.public().Name != again.public().Name || !bytes.Equal(first.public().KEMPublic, again.public().KEMPublic) {
 		t.Error("reloaded identity differs from the created one")
 	}
@@ -299,6 +300,7 @@ func TestInteractiveErrorsAreReportedNotFatal(t *testing.T) {
 func TestInteractiveRejectsBadRecipientName(t *testing.T) {
 	workdir(t)
 	write(t, "f.txt", "some content to share with somebody")
+	//write(t, "evil.pub.json", `{"Name":"../evil","RSAPublic":"","ECCPublic":""}`)
 	write(t, "evil.pub.json", `{"Name":"../evil","SignPublic":"","KEMPublic":""}`)
 	out := script(t, "alice", "1", "f.txt", "pw", "4", "f.txt", "pw", "evil.pub.json", "0")
 	if !strings.Contains(out, "invalid name") {
