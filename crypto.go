@@ -234,6 +234,7 @@ func Decrypt(key, data []byte) ([]byte, error) {
 func Checksum(data []byte) string {
 	// CBOMs: yes
 	// cdxgen
+	// CBOMkit-hyperion
 	// FIXES:
 	// MD5 -> SHA3-384
 	//sum := md5.Sum(data)
@@ -300,6 +301,7 @@ func (k *Keys) Sign(data []byte) ([]byte, error) {
 	}
 	// CBOMs: yes
 	// cdxgen
+	// CBOMkit-hyperion
 	// FIXES:
 	// MD5 -> SHA3-384
 	//digest := md5.Sum(data)
@@ -327,6 +329,7 @@ func Verify(signPublicDER, data, sig []byte) error {
 	}
 	// CBOMs: yes
 	// cdxgen
+	// CBOMkit-hyperion
 	// FIXES:
 	// MD5 -> SHA3-384
 	//digest := md5.Sum(data)
