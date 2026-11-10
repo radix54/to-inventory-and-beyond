@@ -54,6 +54,11 @@ func fastReader() io.Reader {
 }
 
 func NewKeys() (Keys, error) {
+	// CBOMs: yes
+	// cdxgen
+	// CBOMkit-hyperion
+	// FIXES:
+	// RSA PKCS#1 -> ML-DSA-65 PKCS#8
 	//rsaKey, err := rsa.GenerateKey(fastReader(), 2048)
 	dsaKey, err := mldsa.GenerateKey(mldsa.MLDSA65())
 	if err != nil {
@@ -182,21 +187,19 @@ func Decrypt(key, data []byte) ([]byte, error) {
 	return out[:len(out)-pad], nil
 }
 
-// CBOMs: yes
-// cdxgen
-// CBOMkit-hyperion
-// FIXES:
-// MD5 -> SHA-384
 // Checksum is the integrity value stored next to encrypted data
 func Checksum(data []byte) string {
+	// CBOMs: yes
+	// cdxgen
+	// CBOMkit-hyperion
+	// FIXES:
+	// MD5 -> SHA-384
 	//sum := md5.Sum(data)
 	sum := sha3.Sum384(data)
 	return hex.EncodeToString(sum[:])
 }
 
-// CBOMs: yes
-// cdxgen
-// CBOMkit-hyperion
+// CBOMs: no
 // FIXES: Comment since unused
 // sharedKey derives the key-encryption key shared between priv and a peer's P-256 public key
 //func sharedKey(priv *ecdh.PrivateKey, peer []byte) ([]byte, error) {
@@ -245,18 +248,21 @@ func (k *Keys) UnwrapKey(ephemeral, wrapped []byte) ([]byte, error) {
 	return key, err
 }
 
-// CBOMs: yes
-// cdxgen
-// CBOMkit-hyperion
-// FIXES:
-// RSA PKCS#1 -> ML-DSA-65 PKCS#8
-// MD5 -> SHA-384
 func (k *Keys) Sign(data []byte) ([]byte, error) {
 	if k.dsaKey == nil {
 		return nil, errors.New("signing key not loaded")
 	}
+	// CBOMs: yes
+	// cdxgen
+	// CBOMkit-hyperion
+	// FIXES:
+	// MD5 -> SHA-384
 	//digest := md5.Sum(data)
 	digest := sha3.Sum384(data)
+	// CBOMs: yes
+	// cdxgen
+	// FIXES:
+	// RSA PKCS#1 -> ML-DSA-65 PKCS#8
 	//return rsa.SignPKCS1v15(nil, k.rsaKey, crypto.MD5, digest[:])
 	return k.dsaKey.Sign(rand.Reader, digest[:], nil)
 }
@@ -268,6 +274,11 @@ func Verify(signPublicDER, data, sig []byte) error {
 	if err != nil {
 		return err
 	}
+	// CBOMs: yes
+	// cdxgen
+	// CBOMkit-hyperion
+	// FIXES:
+	// MD5 -> SHA-384
 	//digest := md5.Sum(data)
 	digest := sha3.Sum384(data)
 	pub, ok := pubKey.(*mldsa.PublicKey)
